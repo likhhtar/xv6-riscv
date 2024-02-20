@@ -11,11 +11,10 @@ main(int argc, char *argv[])
 
     gets(buffer, BUFFER_SIZE);
 
-
     while (pointer_b < BUFFER_SIZE && buffer[pointer_b] >= '0' && buffer[pointer_b] <= '9')
         x[pointer_x++] = buffer[pointer_b++];
     if (pointer_x == 0) {
-        fprintf(2, "First number is missing\n");
+        fprintf(2, "First number is missing or extra spaces\n");
         exit(1);
     }
     if (buffer[pointer_b] != ' ') {
@@ -31,14 +30,13 @@ main(int argc, char *argv[])
     while (pointer_b < BUFFER_SIZE && buffer[pointer_b] >= '0' && buffer[pointer_b] <= '9')
         y[pointer_y++] = buffer[pointer_b++];
     if (pointer_y == 0) {
-        fprintf(2, "Second number is missing\n");
+        fprintf(2, "Second number is missing or extra spaces\n");
         exit(1);
     }
     if (!(buffer[pointer_b] == '\n' || pointer_b == BUFFER_SIZE)) {
         fprintf(2, "Wrong string type\n");
         exit(1);
     }
-
 
     printf("%d\n", atoi(x) + atoi(y));
     exit(0);
