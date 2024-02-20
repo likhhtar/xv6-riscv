@@ -135,6 +135,7 @@ UPROGS=\
 	$U/_sum_a\
     $U/_sum_b\
     $U/_sum_c\
+    $U/_sum_a_2\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
