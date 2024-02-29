@@ -11,11 +11,20 @@ main(int argc, char *argv[])
 
     while (pointer_b < BUFFER_SIZE - 1) {
         char point;
-        if (read(0, &point, 1) <= 0) break;
-        buffer[pointer_b++] = point;
-        if (point == '\n') break;
+        int has_read = read(0, &point, 1);
+
+        if (has_read == 0) break;
+        else if (has_read < 0) {
+            fprintf(2, "Reading error\n");
+            exit(1);
+        }
+
+        if (point == '\n' || point == '\0') {
+            buffer[pointer_b++] = '\0';
+            break;
+        }
+        else buffer[pointer_b++] = point;
     }
-    buffer[pointer_b] = '\0';
     pointer_b = 0;
 
     while (pointer_b < BUFFER_SIZE && buffer[pointer_b] >= '0' && buffer[pointer_b] <= '9')
@@ -40,7 +49,7 @@ main(int argc, char *argv[])
         fprintf(2, "Second number is missing\n");
         exit(1);
     }
-    if (!(buffer[pointer_b] == '\n' || pointer_b == BUFFER_SIZE)) {
+    if (buffer[pointer_b] != '\0' && buffer[pointer_b] != '\n' && pointer_b != BUFFER_SIZE) {
         fprintf(2, "Wrong string type\n");
         exit(1);
     }

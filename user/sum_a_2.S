@@ -1,7 +1,7 @@
 .data
     input_format:  .asciz " "
     output_format: .asciz "Sum: %d\n"
-    buffer:        .space 64
+    buffer:        .space 512
 
 .text
 .global main
@@ -13,7 +13,7 @@
 
 main:
     la a0, buffer
-    li a1, 64
+    li a1, 512
     call gets       // ввод строки с клавиатуры
 
     la a0, buffer
@@ -39,6 +39,6 @@ main:
     mv a1, t3
     call printf
 
-    li a7, 10
+    li a7, 2
     li a0, 0
     ecall
