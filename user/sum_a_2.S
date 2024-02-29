@@ -2,6 +2,8 @@
     input_format:  .asciz " "
     output_format: .asciz "Sum: %d\n"
     buffer:        .space 512
+    read_error:    .asciz "Read error\n"
+    args_error:    .asciz "Wrong string type\n"
 
 .text
 .global main
@@ -16,9 +18,13 @@ main:
     li a1, 512
     call gets       // ввод строки с клавиатуры
 
+    beqz a0, read_fail
+
     la a0, buffer
     li a1, ' '
     call strchr     // разбиение строки на числа
+
+    beqz a0, args_fail
 
     la a5, buffer
     mv t0, a0
@@ -41,4 +47,26 @@ main:
 
     li a7, 2
     li a0, 0
+    ecall
+
+read_fail:
+    li a7, 64
+    li a0, 2
+    la a1, read_error
+    li a2, 18
+    ecall
+
+    li a7, 93
+    li a0, 1
+    ecall
+
+args_fail:
+    li a7, 64
+    li a0, 2
+    la a1, args_error
+    li a2, 21
+    ecall
+
+    li a7, 93
+    li a0, 1
     ecall
