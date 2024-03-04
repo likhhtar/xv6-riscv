@@ -7,13 +7,13 @@
 int main() {
     int pid, id;
     pid = fork();
-    id = getpid();
 
     if(pid == 0) {
         sleep(SLEEP);
         exit(1);
     }
     else if (pid > 0) {
+        id = getpid();
         fprintf (1, "Parent process - %d Child process - %d\n", id, pid);
 
         kill(pid);

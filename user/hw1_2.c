@@ -2,28 +2,57 @@
 #include "kernel/stat.h"
 #include "user.h"
 
-#define SLEEP 100
+int main(int argc, char *argv[]) {
 
-int main() {
-    int pid, id;
-    pid = fork();
-    id = getpid();
-
-    if(pid == 0) {
-        sleep(SLEEP);
+    if (argc < 2) {
+        fprintf(2, "Wrong args count\n");
         exit(1);
     }
-    else if (pid > 0) {
-        fprintf (1, "Parent process - %d Child process - %d\n", id, pid);
 
-        kill(pid);
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        fprintf(2, "Error creating pipe\n");
+        exit(1);
+    }
+
+    int pid;
+    pid = fork();
+
+    if(pid == 0) {
+        close(pipefd[1]);
+
+        while (1) {
+            char c;
+            int bytes = read(pipefd[0], &c, 1);
+            if (bytes < 1) break;
+            printf("%c", c);
+        }
+
+        close(pipefd[0]);
+    }
+    else if (pid > 0) {
+        close(pipefd[0]);
+
+        for (int i = 1; i < argc; i++) {
+            if (write(pipefd[1], argv[i], strlen(argv[i])) == -1) {
+                fprintf(2, "Error writing to pipe\n");
+                exit(1);
+            }
+            if (write(pipefd[1], "\n", 1) == -1) {
+                fprintf(2, "Error writing to pipe\n");
+                exit(1);
+            }
+        }
+
+        close(pipefd[1]);
+
         int ex_code;
         wait(&ex_code);
-
-        fprintf (1, "Child process - %d Return code - %d\n", pid, ex_code);
     }
-    else
+    else {
         fprintf(2, "Error\n");
+        exit(1);
+    }
 
     exit(0);
 }
