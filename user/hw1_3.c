@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
 
         char *argv[] = {"/wc", 0};
         exec("/wc", argv);
+        fprintf(2, "Error exec\n");
     }
     else if (pid > 0) {
         close(pipefd[0]);
