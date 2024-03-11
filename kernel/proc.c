@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "procinfo.h"
 
 struct cpu cpus[NCPU];
 
@@ -680,4 +681,75 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+uint64
+ps_listinfo(struct procinfo *plist, int lim){
+    uint64 addr;
+    int cnt_proc = 0;
+
+    // Получаем адрес буфера из пользовательского пространства
+    argaddr(0, &addr);
+
+    // Перебираем все процессы
+    for (struct proc *p = proc; p < &proc[NPROC]; p++) {
+        acquire(&p->lock);
+        if (p->state == UNUSED) {
+            release(&p->lock);
+            continue;
+        }
+
+        cnt_proc++;
+
+        // Проверяем, не превышает ли количество процессов предел lim
+        if (cnt_proc > lim) {
+            release(&p->lock);
+            return cnt_proc;
+        }
+
+        // Копируем информацию о процессе в буфер plist
+        if (addr) {
+            // Копируем имя процесса
+            if (copyout(myproc()->pagetable, addr, p->name, sizeof(p->name)) < 0) {
+                release(&p->lock);
+                return -2;
+            }
+            addr += sizeof(p->name);
+
+            // Копируем состояние процесса
+            if (copyout(myproc()->pagetable, addr, (char *)&p->state, sizeof(p->state)) < 0) {
+                release(&p->lock);
+                return -2;
+            }
+            addr += sizeof(p->state);
+
+            // Копируем идентификатор родительского процесса
+            int parent_pid = -1;
+            acquire(&wait_lock);
+
+            if (p->parent)
+                parent_pid = p->parent->pid;
+
+            release(&wait_lock);
+
+            if (copyout(myproc()->pagetable, addr, (char *)&parent_pid, sizeof(parent_pid)) < 0) {
+                release(&p->lock);
+                return -2;
+            }
+            addr += sizeof(parent_pid);
+        }
+
+        release(&p->lock);
+    }
+
+    return cnt_proc;
+}
+
+uint64
+sys_procinfo(void) {
+    uint64 plist;
+    int lim;
+    argaddr(0, &plist);
+    argint(1, &lim);
+    return ps_listinfo((procinfo_t*)plist, lim);
 }
