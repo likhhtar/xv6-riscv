@@ -5,7 +5,7 @@
 
 
 int main(int argc, char *argv[]) {
-    struct procinfo plist[10];
+    procinfo_t plist[10];
     int lim = 10;
 
     // Вызываем системный вызов с недопустимым адресом буфера
@@ -23,6 +23,15 @@ int main(int argc, char *argv[]) {
     fprintf(1, "ps_listinfo returned: %d\n\n", ret);
     if (ret <= 1) {
         fprintf(2, "Error: insufficient buffer size failed\n");
+        exit(1);
+    }
+
+    // Вызываем системный вызов с пустым буфером
+    fprintf(1, "Testing with empty buffer:\n");
+    ret = ps_listinfo(0, lim);
+    fprintf(1, "ps_listinfo returned: %d\n\n", ret);
+    if (ret < 0) {
+        fprintf(2, "Error: valid buffer failed\n");
         exit(1);
     }
 

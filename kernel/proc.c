@@ -690,6 +690,7 @@ ps_listinfo(struct procinfo *plist, int lim){
 
     // Получаем адрес буфера из пользовательского пространства
     argaddr(0, &addr);
+    if (addr == 0) lim = -1;
 
     // Перебираем все процессы
     for (struct proc *p = proc; p < &proc[NPROC]; p++) {
