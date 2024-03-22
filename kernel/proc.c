@@ -684,13 +684,8 @@ procdump(void)
 }
 
 uint64
-ps_listinfo(struct procinfo *plist, int lim){
-    uint64 addr;
+ps_listinfo(procinfo_t *plist, int lim){
     int cnt_proc = 0;
-
-    // Получаем адрес буфера из пользовательского пространства
-    argaddr(0, &addr);
-    if (addr == 0) lim = -1;
 
     // Перебираем все процессы
     for (struct proc *p = proc; p < &proc[NPROC]; p++) {
@@ -703,41 +698,43 @@ ps_listinfo(struct procinfo *plist, int lim){
         cnt_proc++;
 
         // Проверяем, не превышает ли количество процессов предел lim
-        if (cnt_proc > lim) {
+        if (cnt_proc > lim && plist != 0) {
             release(&p->lock);
             return cnt_proc;
         }
 
         // Копируем информацию о процессе в буфер plist
-        if (addr) {
-            // Копируем имя процесса
-            if (copyout(myproc()->pagetable, addr, p->name, sizeof(p->name)) < 0) {
-                release(&p->lock);
-                return -2;
-            }
-            addr += sizeof(p->name);
-
-            // Копируем состояние процесса
-            if (copyout(myproc()->pagetable, addr, (char *)&p->state, sizeof(p->state)) < 0) {
-                release(&p->lock);
-                return -2;
-            }
-            addr += sizeof(p->state);
-
+        if (plist != 0) {
+            procinfo_t list;
+            procinfo_t* to_list = plist + (cnt_proc - 1);
+        
             // Копируем идентификатор родительского процесса
-            int parent_pid = -1;
             acquire(&wait_lock);
 
-            if (p->parent)
-                parent_pid = p->parent->pid;
-
+            if (p->parent) {
+                acquire(&p->parent->lock);
+                list.parent_pid = p->parent->pid;
+                release(&p->parent->lock);
+            }
+            else {
+                list.parent_pid = -1;
+            }
+          
             release(&wait_lock);
 
-            if (copyout(myproc()->pagetable, addr, (char *)&parent_pid, sizeof(parent_pid)) < 0) {
+
+            // Копируем имя процесса
+            memmove(list.name, p->name, 16);
+            
+
+            // Копируем состояние процесса
+            list.state = p->state;
+           
+
+            if (copyout(myproc()->pagetable, (uint64)to_list, (char *)&list, sizeof(procinfo_t)) < 0) {
                 release(&p->lock);
                 return -2;
             }
-            addr += sizeof(parent_pid);
         }
 
         release(&p->lock);

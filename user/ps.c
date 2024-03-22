@@ -4,15 +4,10 @@
 #include "user/user.h"
 
 int main(void) {
-    procinfo_t buf[NPROC];
-
-    int cnt_proc = ps_listinfo(buf, NPROC);
-    if (cnt_proc < 0 || cnt_proc > NPROC) {
-        fprintf(2, "Error: ps_listinfo failed with error code %d\n", cnt_proc);
-        exit(1);
-    }
-
-    char *states[] = {
+    int size = 1;
+    int cnt_proc;
+    
+     char *states[] = {
             [0]    "unused ",
             [1]    "used   ",
             [2]    "sleep  ",
@@ -21,9 +16,24 @@ int main(void) {
             [5]    "zombie "
     };
 
-    for (int i = 0; i < cnt_proc; ++i) {
-        printf("%s %d %s\n", states[buf[i].state], buf[i].parent_pid, buf[i].name);
-    }
+    while (1) {
+        procinfo_t buf[size];
+        cnt_proc = procinfo((uint64)buf, size);
 
-    exit(0);
+        if (cnt_proc < 0) {
+            fprintf(2, "Error: ps_listinfo failed with error code %d\n", cnt_proc);
+            exit(1);
+        }
+
+        if (size < cnt_proc) {
+            size *= 2;
+        }
+        else {
+            for (int i = 0; i < cnt_proc; ++i) {
+                printf("%s %d %s\n", states[buf[i].state], buf[i].parent_pid, buf[i].name);
+            }
+            exit(0);
+        }
+    }
+    exit(1);
 }

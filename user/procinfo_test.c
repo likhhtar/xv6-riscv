@@ -5,12 +5,12 @@
 
 
 int main(int argc, char *argv[]) {
-    procinfo_t plist[10];
+    procinfo_t *plist[10];
     int lim = 10;
 
     // Вызываем системный вызов с недопустимым адресом буфера
     fprintf(1, "Testing with invalid buffer address:\n");
-    int ret = ps_listinfo((struct procinfo *)0xFFFFFFFFFFFFF000, lim);
+    int ret = procinfo((uint64)0xFFFFFFFFFFFFF000, lim);
     fprintf(1, "ps_listinfo returned: %d\n\n", ret);
     if (ret > 0) {
         fprintf(2, "Error: invalid buffer address failed\n");
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 
     // Вызываем системный вызов с недопустимым размером буфера
     fprintf(1, "Testing with insufficient buffer size:\n");
-    ret = ps_listinfo(plist, 1); // Передаем буфер размером на один элемент
+    ret = procinfo((uint64)plist, 1); // Передаем буфер размером на один элемент
     fprintf(1, "ps_listinfo returned: %d\n\n", ret);
     if (ret <= 1) {
         fprintf(2, "Error: insufficient buffer size failed\n");
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 
     // Вызываем системный вызов с пустым буфером
     fprintf(1, "Testing with empty buffer:\n");
-    ret = ps_listinfo(0, lim);
+    ret = procinfo(0, lim); 
     fprintf(1, "ps_listinfo returned: %d\n\n", ret);
     if (ret < 0) {
         fprintf(2, "Error: valid buffer failed\n");
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
     // Вызываем системный вызов с допустимым буфером
     fprintf(1, "Testing with valid buffer:\n");
-    ret = ps_listinfo(plist, lim);
+    ret = procinfo((uint64)plist, lim);
     fprintf(1, "ps_listinfo returned: %d\n\n", ret);
     if (ret < 0) {
         fprintf(2, "Error: valid buffer failed\n");
