@@ -55,6 +55,9 @@ procinit(void)
       initlock(&p->lock, "proc");
       p->state = UNUSED;
       p->kstack = KSTACK((int) (p - proc));
+      for (int i = 0; i < NOMUTEX; i++) {
+          p->omutex[i] = -1;
+      }
   }
 }
 
@@ -308,6 +311,14 @@ fork(void)
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
 
+  for (i = 0; i < NOMUTEX; i++) {
+      np->omutex[i] = p->omutex[i];
+      if (p->omutex[i] != -1) {
+          mutex_use(p->omutex[i]);
+      }
+
+  }
+
   safestrcpy(np->name, p->name, sizeof(p->name));
 
   pid = np->pid;
@@ -350,6 +361,13 @@ exit(int status)
 
   if(p == initproc)
     panic("init exiting");
+
+  // Close all open mutexes.
+  for (int i = 0; i < NOMUTEX; i++) {
+      if (p->omutex[i] != -1) {
+          mutex_destroy(p->omutex[i]);
+      }
+  }
 
   // Close all open files.
   for(int fd = 0; fd < NOFILE; fd++){
