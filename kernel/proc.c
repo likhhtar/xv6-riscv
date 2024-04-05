@@ -699,3 +699,17 @@ procdump(void)
     printf("\n");
   }
 }
+
+int add_new_mutex(int mutex_desc){
+    struct proc* p = myproc();
+    acquire(&p->lock);
+    for (int i = 0; i < NOMUTEX; i++) {
+        if (p->omutex[i] == -1) {
+            p->omutex[i] = mutex_desc;
+            release(&p->lock);
+            return 0;
+        }
+    }
+    release(&p->lock);
+    return -1;
+}

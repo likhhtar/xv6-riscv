@@ -16,17 +16,18 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
+    int mt = mutex_create(); // Создаем мьютекс
+    if (mt == -1) {
+        fprintf(2, "Error in mutex\n");
+        exit(-1);
+    }
+
     int pid = fork(); // Создаем новый процесс
     if (pid == -1) {
         fprintf(2, "Error in fork\n");
         exit(-1);
     }
 
-    int mt = mutex_create(); // Создаем мьютекс
-    if (mt == -1) {
-        fprintf(2, "Error in mutex\n");
-        exit(-1);
-    }
 
     if (pid == 0) { // Дочерний процесс
         close(pipe_fd2[0]); // Закрываем конец канала для чтения в дочернем процессе

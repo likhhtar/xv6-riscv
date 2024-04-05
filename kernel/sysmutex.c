@@ -8,7 +8,10 @@
 
 uint64
 sys_mutex_create(void) {
-    return mutex_create();
+    int mutex_desc = mutex_create();
+    if (mutex_desc < 0) return -1;
+    if (add_new_mutex(mutex_desc) < 0) return -2;
+    return mutex_desc;
 }
 
 uint64

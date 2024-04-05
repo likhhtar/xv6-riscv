@@ -29,6 +29,8 @@ mutex_init(void) {
 int
 mutex_lock(int mutex_desc) {
     if (mutex_desc < 0 || mutex_desc >= NMUTEX) return -1; // Проверка на корректность описателя мьютекса
+    if (mt.mutexes[mutex_desc].count < 0 || mt.mutexes[mutex_desc].count >= NMUTEX)
+        return -2; // Проверяем, что процесс владеет мьютексом с данным дескриптором
     acquiresleep(&mt.mutexes[mutex_desc].sleep);           // Захват блокировки сон для безопасного доступа к мьютексу
     return 0;                                              // Возвращаем 0 в случае успешного захвата мьютекса
 }
@@ -36,6 +38,8 @@ mutex_lock(int mutex_desc) {
 int
 mutex_unlock(int mutex_desc) {
     if (mutex_desc < 0 || mutex_desc >= NMUTEX) return -1; // Проверка на корректность описателя мьютекса
+    if (mt.mutexes[mutex_desc].count < 0 || mt.mutexes[mutex_desc].count >= NMUTEX)
+        return -2; // Проверяем, что процесс владеет мьютексом с данным дескриптором
     releasesleep(&mt.mutexes[mutex_desc].sleep);           // Освобождение блокировки сон после завершения операций с мьютексом
     return 0;                                              // Возвращаем 0 в случае успешного освобождения мьютекса
 }
@@ -58,6 +62,7 @@ mutex_create(void) {
 int
 mutex_hold(int mutex_desc) {
     if (mutex_desc < 0 || mutex_desc >= NMUTEX) return -1;
+    if (mt.mutexes[mutex_desc].count < 0 || mt.mutexes[mutex_desc].count >= NMUTEX) return -2;
     acquire(&mt.mutexes[mutex_desc].spin);
     int d = holdingsleep(&mt.mutexes[mutex_desc].sleep); // Получение текущего количества удержаний блокировки
     release(&mt.mutexes[mutex_desc].spin);
@@ -69,7 +74,7 @@ mutex_destroy(int mutex_desc) {
     int h = mutex_hold(mutex_desc);  // Получение текущего количества удержаний мьютекса
     if (h < 0) return -1;             // Если получение количества удержаний вызвало ошибку, возвращаем -1
 
-    if (mutex_unlock(mutex_desc) < 0) return -2;  // Попытка разблокировать мьютекс, если не удалось, возвращаем -2
+    if (mutex_unlock(mutex_desc) < 0 && h == 1) return -2;  // Попытка разблокировать мьютекс, если не удалось, возвращаем -2
 
     acquire(&mt.mutexes[mutex_desc].spin);        // Захват спин-блокировки для безопасного доступа к мьютексу
 
@@ -88,6 +93,9 @@ mutex_destroy(int mutex_desc) {
 int
 mutex_use(int t) {
     if (t < 0 || t >= NMUTEX) return -1;  // Проверка на корректность индекса мьютекса
+
+    if (mt.mutexes[t].count < 0 || mt.mutexes[t].count >= NMUTEX)
+        return -2; // Проверяем, что процесс владеет мьютексом с данным дескриптором
 
     acquire(&mt.mutexes[t].spin);         // Захват блокировки для безопасного доступа к мьютексу
     mt.mutexes[t].count++;                 // Увеличение счетчика использования мьютекса
