@@ -13,7 +13,7 @@ queue_t buffer;
 void
 buffer_init(void) {
     initlock(&buffer.lock, "cycle_buffer");
-    buffer.head = buffer.tail = 0;
+    buffer.head = buffer.tail = buffer.size = 0;
 }
 
 static char digits[] = "0123456789abcdef";
@@ -47,6 +47,7 @@ print_ptr_buffer(uint64 x) {
 }
 
 void pr_msg(const char *fmt, ...) {
+    acquire(&buffer.lock);
     queue_add(&buffer, '[');
 
     acquire(&tickslock);
@@ -105,6 +106,7 @@ void pr_msg(const char *fmt, ...) {
     va_end(ap);
 
     queue_add(&buffer, '\n');
+    release(&buffer.lock);
 }
 
 
@@ -118,9 +120,9 @@ sys_dmesg(void) {
     argaddr(1, &sz);
 
     acquire(&buffer.lock);
-    int i = 0, j = buffer.head;
+    int size = buffer.head ? BUFFER_SIZE : buffer.tail, i = 0, j = buffer.head ? buffer.tail : 0;
 
-    while (i < sz - 1 && j != buffer.tail) {
+    while (i < sz - 1 && i != size) {
         if (copyout(myproc()->pagetable, addr_buf + i, &buffer.data[j], 1) < 0) {
             release(&buffer.lock);
             return -1;

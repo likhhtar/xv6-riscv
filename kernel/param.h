@@ -12,5 +12,5 @@
 #define FSSIZE       2000  // size of file system in blocks
 #define MAXPATH      128   // maximum file path name
 #define MEMPAGESIZE  1024
-#define PAGEQUAN     4
+#define PAGEQUAN     1
 #define BUFFER_SIZE   MEMPAGESIZE*PAGEQUAN

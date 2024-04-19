@@ -6,14 +6,26 @@
 #include "proc.h"
 #include "defs.h"
 #include "cycle_queue.h"
+#include <stddef.h>
+#include <assert.h>
 
-void queue_add(struct cycle_queue *q, char a) {
-    acquire(&q->lock);
 
-    if ((q->tail + 1) % BUFFER_SIZE == q->head) q->head = (q->head + 1) % BUFFER_SIZE;
+int queue_add(struct cycle_queue *q, char a) {
 
-    q->data[q->tail] = a;
-    q->tail = (q->tail + 1) % BUFFER_SIZE;
+    // Проверка на нулевой указатель
+    if (q == NULL) {
+        release(&q->lock);
+        return -1;
+    }
 
-    release(&q->lock);
+    // Добавление элемента в конец очереди
+    q->data[q->tail++] = a;
+
+    // Проверка на переполнение
+    if (q->tail == BUFFER_SIZE) {
+        q->head = 1; // Установка флага переполнения
+        q->tail = 0; // Обнуление индекса конца очереди
+    }
+
+    return 0;
 }

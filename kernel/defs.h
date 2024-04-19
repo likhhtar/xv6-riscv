@@ -188,7 +188,7 @@ void            virtio_disk_rw(struct buf *, int);
 void            virtio_disk_intr(void);
 
 // cycle_queue.c
-void            queue_add(struct cycle_queue *q, char a);
+int             queue_add(struct cycle_queue *q, char a);
 
 // buffer.c
 void            buffer_init(void);
