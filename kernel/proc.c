@@ -462,6 +462,10 @@ scheduler(void)
         c->proc = p;
         swtch(&c->context, &p->context);
 
+        if (!prot_check(SWTCH_CODE)) {
+            pr_msg("SWTCH: pid - %d, name - %s", p->pid, p->name);
+        }
+
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;

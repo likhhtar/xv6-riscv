@@ -187,8 +187,14 @@ devintr()
     int irq = plic_claim();
 
     if(irq == UART0_IRQ){
+      if (!prot_check(INTR_CODE)) {
+          pr_msg("INTR: scause - %p, sepc - %p, device - UART", r_scause(), r_sepc());
+      }
       uartintr();
     } else if(irq == VIRTIO0_IRQ){
+      if (!prot_check(INTR_CODE)) {
+          pr_msg("INTR: scause - %p, sepc - %p, device - VIRTIO", r_scause(), r_sepc());
+      }
       virtio_disk_intr();
     } else if(irq){
       printf("unexpected interrupt irq=%d\n", irq);

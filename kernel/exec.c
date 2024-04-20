@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "defs.h"
 #include "elf.h"
+#include "protocol.h"
 
 static int loadseg(pde_t *, uint64, struct inode *, uint, uint);
 
@@ -30,6 +31,10 @@ exec(char *path, char **argv)
   struct proghdr ph;
   pagetable_t pagetable = 0, oldpagetable;
   struct proc *p = myproc();
+
+  if (!prot_check(EXEC_CODE)) {
+      pr_msg("EXEC: pid - %d, path - %s", p->pid, path);
+  }
 
   begin_op();
 
