@@ -147,7 +147,7 @@ syscall(void)
     int pid = p->pid;
     release(&p->lock);
     if (!prot_check(SYSCALL_CODE)) {
-        pr_msg("SYSCALL: pid - %d, num - %s", pid, num);
+        pr_msg("SYSCALL: pid - %d, num - %d", pid, num);
     }
 
     p->trapframe->a0 = syscalls[num]();
