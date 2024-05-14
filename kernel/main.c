@@ -29,7 +29,10 @@ main()
     fileinit();      // file table
     virtio_disk_init(); // emulated hard disk
     userinit();      // first user process
+    buffer_init();
+    prot_init();
     __sync_synchronize();
+
     started = 1;
   } else {
     while(started == 0)

@@ -11,3 +11,11 @@
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 #define FSSIZE       2000  // size of file system in blocks
 #define MAXPATH      128   // maximum file path name
+#define MEMPAGESIZE  1024
+#define PAGEQUAN     1
+#define BUFFER_SIZE   MEMPAGESIZE*PAGEQUAN
+
+#define SYSCALL_CODE 0
+#define INTR_CODE 1
+#define SWTCH_CODE 2
+#define EXEC_CODE 3
