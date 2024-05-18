@@ -89,3 +89,37 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// Функция для проверки доступа к страницам памяти и очистки флага доступа
+uint64
+sys_pgaccess(void) {
+    uint64 page_addr;
+    int size;
+    int num_pages;
+    uint64 result_addr;
+
+    argaddr(0, &page_addr);
+    argint(1, &size);
+    argaddr(2, &result_addr);
+
+    num_pages = (size + PGSIZE - 1) / PGSIZE;
+
+    pagetable_t pagetable = myproc()->pagetable;
+
+    int res = 0;
+    for (int i = 0; i < num_pages; ++i) {
+        // Получение указателя на запись таблицы страниц для текущей страницы
+        pte_t *pte = walk(pagetable, page_addr, 0);
+
+        if (*pte & PTE_A) {
+            // Сброс флага доступа
+            (*pte) &= ~PTE_A;
+            res = 1;
+        }
+
+        page_addr += PGSIZE;
+    }
+
+    if (copyout(pagetable, result_addr, (char *)&res, sizeof(res)) < 0) return -1;
+    return 0;
+}
